@@ -43,7 +43,8 @@ export async function getStaticProps({ params }) {
 
   const posts = await getHome();
   
-  console.log(posts);
+  console.log(posts); 
+  
 
   return {
     props: {
