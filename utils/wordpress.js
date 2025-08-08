@@ -5,22 +5,33 @@ import { gql } from "@apollo/client";
 
 const BASE_URL = "https://dddemo.net/wordpress/2022/awd/wp-json/wp/v2";
 
-
-
+async function safeFetchJson(url) {
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
 
 export async function getHome()
 {
-  
-  const postsRes = await fetch(BASE_URL + "/pages/81");
-  const posts = await postsRes.json();
-  return posts;
+  const data = await safeFetchJson(BASE_URL + "/pages/81");
+  return data || null;
 }
 
-
 export async function getPosts() {
-  const postsRes = await fetch(BASE_URL + "/posts?_embed");
-  const posts = await postsRes.json();
-  return posts;
+  const posts = await safeFetchJson(BASE_URL + "/posts?_embed");
+  return Array.isArray(posts) ? posts : [];
 }
 
 export async function getPost(slug) {
@@ -30,9 +41,8 @@ export async function getPost(slug) {
   return post;
 }
 export async function getEvents() {
-  const eventsRes = await fetch(BASE_URL + "/events?_embed");
-  const events = await eventsRes.json();
-  return events;
+  const events = await safeFetchJson(BASE_URL + "/events?_embed");
+  return Array.isArray(events) ? events : [];
 }
 
 export async function getEvent(slug) {
@@ -52,7 +62,7 @@ export async function getSlugs(type) {
       elements = await getEvents();
       break;
   }
-  const elementsIds = elements.map((element) => {
+  const elementsIds = (elements || []).map((element) => {
     return {
       params: {
         slug: element.slug,
